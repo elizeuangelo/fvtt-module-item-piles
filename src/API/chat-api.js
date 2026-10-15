@@ -162,6 +162,51 @@ export default class ChatAPI {
 	}
 
 	/**
+	 * Outputs to chat based on moving items between two actors' sheets, the same way as giving them
+	 *
+	 * @param source
+	 * @param target
+	 * @param items
+	 * @returns {Promise}
+	 */
+	static async _outputSheetTransfer(source, target, items) {
+		if (!Helpers.getSetting(SETTINGS.OUTPUT_TO_CHAT)) return;
+		const [itemData, itemCurrencies] = await this._formatItemData(source, items);
+		return this._giveChatMessage(source, target, itemData.concat(itemCurrencies), game.user.id);
+	}
+
+	/**
+	 * Tells the GMs and the current user that a sheet transfer added items to the target without removing them
+	 * from the source, regardless of the output to chat setting
+	 *
+	 * @param source
+	 * @param target
+	 * @param items
+	 * @returns {Promise}
+	 */
+	static async _outputSheetTransferDuplicated(source, target, items) {
+		const [itemData, itemCurrencies] = await this._formatItemData(source, items);
+		const chatCardHtml = await renderTemplate(CONSTANTS.PATH + "templates/chat/gave-items.html", {
+			message: game.i18n.format("ITEM-PILES.Chat.SheetTransferDuplicated", { source: source.name, target: target.name }),
+			source,
+			target,
+			items: itemData.concat(itemCurrencies)
+		});
+		const whisper = Array.from(game.users)
+			.filter(user => user.isGM)
+			.map(user => user.id);
+		whisper.push(game.user.id);
+		return this._createNewChatMessage(game.user.id, {
+			user: game.user.id,
+			type: CONST.CHAT_MESSAGE_STYLES.OTHER,
+			content: chatCardHtml,
+			flavor: "Item Piles",
+			speaker: ChatMessage.getSpeaker({ alias: game.user.name }),
+			whisper
+		});
+	}
+
+	/**
 	 * Outputs to chat based on transferring everything from or to an item pile
 	 *
 	 * @param source

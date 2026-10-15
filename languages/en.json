@@ -54,6 +54,10 @@
       "TransactionNoGMConnected": "No GM is connected - current transaction has been cancelled, nothing has been added, removed, or transferred",
       "GiveItemNoGM": "There is no GM active to receive you giving this item.",
       "GiveItemDeclined": "{user_name} declined your item offer.",
+      "SheetTransferInProgress": "Another item transfer is still in progress, please wait for it to finish.",
+      "SheetTransferSourceChanged": "{item_name} changed on {source_name} before it could be transferred, nothing was moved.",
+      "SheetTransferDuplicated": "{item_name} was added to {target_name} but could not be removed from {source_name}, it now exists on both.",
+      "SheetTransferFailed": "{item_name} could not be transferred, nothing was moved.",
       "NoPlayersActive": "No players are active to do this action",
       "NoGMsConnectedAction": "WARNING - Could not execute \"{action}\" because no GMs are active.",
       "VaultFull": "This item can't fit into this vault!",
@@ -809,7 +813,8 @@
       "PrivateTrade": "Private Trade",
       "ExpandTrade": "View full trade details",
       "MerchantTraded": "{name} bought the following things from {merchant}:",
-      "GaveItems": "{source} gave some items to {target}:"
+      "GaveItems": "{source} gave some items to {target}:",
+      "SheetTransferDuplicated": "These items were added to {target} but could not be removed from {source}, they now exist on both:"
     },
     "VaultLog": {
       "Withdraw": "{actor_name} ({user_name}) **withdrew** {item_name} x {quantity} ({date})",
@@ -914,6 +919,12 @@
       "EnableGivingItems": {
         "Title": "Enable Giving Items",
         "Hint": "This enables users to be able to drop items onto other tokens to give it to them - with this disabled, users cannot give other users items."
+      },
+      "SheetItemDrop": {
+        "Title": "Dragging Items Between Actors",
+        "Hint": "What happens when a user drags an item from one actor's sheet to another actor or container they own. Transfer moves the item, asking how many when the stack has more than one (hold the \"Force drop one item\" key to move just one); Copy keeps Foundry's default of duplicating it.",
+        "Transfer": "Transfer - move the item",
+        "Copy": "Copy - duplicate the item (Foundry default)"
       },
       "EnableTrading": {
         "Title": "Enable Trading",

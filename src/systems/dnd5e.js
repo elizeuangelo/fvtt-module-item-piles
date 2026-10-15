@@ -1,6 +1,7 @@
 import GiveItems from "../applications/dialogs/give-items-dialog/give-items-dialog.js";
 import PrivateAPI from "../API/private-api.js";
 import CONSTANTS from "../constants/constants.js";
+import { registerSheetTransfers } from "./dnd5e-sheet-transfers.js";
 
 export default {
 
@@ -278,6 +279,8 @@ export default {
 				condition: !game.itempiles.API.isItemInvalid(item)
 			})
 		});
+
+		registerSheetTransfers();
 
 	}
 }

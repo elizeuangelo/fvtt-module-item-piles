@@ -29,6 +29,9 @@
 	const editQuantities = store.editQuantities;
 
 	function dragStart(event) {
+		// The surrounding drop zone cancels drags that start inside it, only GMs may drag items out
+		if (!game.user.isGM) return;
+		event.stopPropagation();
 		const data = {
 			type: "Item",
 			uuid: entry.item.uuid
@@ -46,7 +49,7 @@
 <div bind:this={element}
      class="item-piles-flexrow item-piles-item-row"
      class:item-piles-disabled={!$editQuantities && (!$quantityLeft || !$quantity)}
-     draggable={!!entry.item}
+     draggable={!!entry.item && game.user.isGM}
      on:dragstart={(event) => { dragStart(event) }}
      transition:fade={{duration: 250}}>
 

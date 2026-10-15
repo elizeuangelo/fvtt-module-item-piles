@@ -17,6 +17,7 @@ const SETTINGS = {
 	ENABLE_DROPPING_ITEMS: "enableDroppingItems",
 	ENABLE_TRADING: "enableTrading",
 	ENABLE_GIVING_ITEMS: "enableGivingItems",
+	SHEET_ITEM_DROP: "sheetItemDrop",
 	SHOW_TRADE_BUTTON: "showTradeButton",
 	DELETE_EMPTY_PILES: "deleteEmptyPiles",
 	INSPECT_ITEMS_IN_TRADE: "inspectItemsInTrade",
@@ -57,6 +58,11 @@ const SETTINGS = {
 		EVERYONE: "everyone",
 		PLAYERS: "players",
 		SHOW: "show"
+	},
+
+	SHEET_ITEM_DROP_OPTIONS: {
+		TRANSFER: "transfer",
+		COPY: "copy"
 	},
 
 	DEFAULT_CSS_VARIABLES: {
@@ -413,6 +419,19 @@ const SETTINGS = {
 			config: false,
 			default: true,
 			type: Boolean
+		},
+
+		[SETTINGS.SHEET_ITEM_DROP]: {
+			name: "ITEM-PILES.Settings.SheetItemDrop.Title",
+			hint: "ITEM-PILES.Settings.SheetItemDrop.Hint",
+			scope: "world",
+			config: false,
+			default: SETTINGS.SHEET_ITEM_DROP_OPTIONS.TRANSFER,
+			choices: {
+				[SETTINGS.SHEET_ITEM_DROP_OPTIONS.TRANSFER]: "ITEM-PILES.Settings.SheetItemDrop.Transfer",
+				[SETTINGS.SHEET_ITEM_DROP_OPTIONS.COPY]: "ITEM-PILES.Settings.SheetItemDrop.Copy"
+			},
+			type: String
 		},
 
 		[SETTINGS.SHOW_TRADE_BUTTON]: {

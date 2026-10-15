@@ -358,6 +358,90 @@ export default class PrivateAPI {
 
 	}
 
+	/**
+	 * Moves an item dropped from one actor's sheet onto another actor's sheet, both owned by the current user.
+	 * Unlike _transferItems, the target is saved before the source, so a failure leaves the item on both actors
+	 * instead of on neither, and the contents of nested containers are moved too.
+	 *
+	 * @param {Actor} sourceActor
+	 * @param {Actor} targetActor
+	 * @param {Item} item                             The item being moved
+	 * @param {number} quantity                       How many of the item to move
+	 * @param {string|null} [containerId=null]        The target container the item was dropped onto, if any
+	 * @returns {Promise<{ items: Array, error: Error|null }|false>}  The moved items, and the error if the source could not be updated
+	 */
+	static async _transferSheetItem(sourceActor, targetActor, item, quantity, { containerId = null } = {}) {
+
+		const items = [{ item, quantity }];
+		const containers = [item];
+		while (containers.length) {
+			const container = containers.shift();
+			const handler = Utilities.getItemTypeHandler(CONSTANTS.ITEM_TYPE_METHODS.TRANSFER, container.type);
+			if (!handler) continue;
+			const contents = [];
+			handler({ item: container, items: contents, raw: true });
+			for (const content of contents) {
+				items.push({ item: content, quantity: Utilities.getItemQuantity(content) });
+				containers.push(content);
+			}
+		}
+
+		const sourceTransaction = new Transaction(sourceActor);
+		await sourceTransaction.appendItemChanges(items, { remove: true });
+		const sourceUpdates = sourceTransaction.prepare();
+
+		// Place the moved item where it was dropped, so it stacks with what is already there
+		const containerPath = Utilities.getItemTypeHandler(CONSTANTS.ITEM_TYPE_METHODS.IS_CONTAINED_PATH);
+		const movedItem = sourceUpdates.itemDeltas.find(delta => delta.item._id === item.id)?.item;
+		if (containerPath && movedItem) {
+			foundry.utils.setProperty(movedItem, containerPath, containerId);
+		}
+
+		const targetTransaction = new Transaction(targetActor);
+		await targetTransaction.appendItemChanges(sourceUpdates.itemDeltas);
+		const targetUpdates = targetTransaction.prepare();
+
+		// Preparing gives created items new IDs and moves any item whose container isn't created with it to the top
+		// level, which would take a moved item that didn't stack out of the container it was dropped onto
+		if (containerPath && containerId) {
+			const createdItem = targetUpdates.itemsToCreate.find(itemData => !foundry.utils.getProperty(itemData, containerPath));
+			if (createdItem) foundry.utils.setProperty(createdItem, containerPath, containerId);
+		}
+
+		const hookResult = Helpers.hooks.call(CONSTANTS.HOOKS.ITEM.PRE_TRANSFER, sourceActor, sourceUpdates, targetActor, targetUpdates, false);
+		if (hookResult === false) return false;
+
+		const { itemDeltas } = await targetTransaction.commit();
+
+		let error = null;
+		try {
+			await sourceTransaction.commit();
+		} catch (err) {
+			error = err;
+		}
+
+		if (!error) {
+			await ItemPileSocket.callHook(CONSTANTS.HOOKS.ITEM.TRANSFER, sourceActor.uuid, targetActor.uuid, itemDeltas, game.user.id, false);
+
+			// Taking the last items out of a pile or container cleans it up the same way as _transferItems does
+			const itemPile = Utilities.getToken(sourceActor.uuid);
+			if (PileUtilities.shouldItemPileBeDeleted(sourceActor.uuid)) {
+				await this._deleteItemPile(sourceActor.uuid);
+			} else if (PileUtilities.isItemPileLootable(itemPile) && PileUtilities.isItemPileEmpty(itemPile)) {
+				await SharingUtilities.clearItemPileSharingData(itemPile);
+			}
+		}
+
+		// The source deltas carry negative quantities, report what was moved with positive ones
+		const movedItems = sourceUpdates.itemDeltas.map(delta => {
+			const quantity = Math.abs(delta.quantity);
+			return { item: Utilities.setItemQuantity(foundry.utils.deepClone(delta.item), quantity, true), quantity };
+		});
+
+		return { items: movedItems, error };
+
+	}
+
 	static async _transferAllItems(sourceUuid, targetUuid, userId, {
 		itemFilters = false, skipVaultLogging = false, interactionId = false
 	} = {}) {

@@ -170,6 +170,7 @@
 				<div class="item-piles-tab" class:active={activeTab === 'module'}>
 					<Setting key={SETTINGS.ENABLE_DROPPING_ITEMS} bind:data="{settings[SETTINGS.ENABLE_DROPPING_ITEMS]}"/>
 					<Setting key={SETTINGS.ENABLE_GIVING_ITEMS} bind:data="{settings[SETTINGS.ENABLE_GIVING_ITEMS]}"/>
+					<Setting key={SETTINGS.SHEET_ITEM_DROP} bind:data="{settings[SETTINGS.SHEET_ITEM_DROP]}"/>
 					<Setting key={SETTINGS.ENABLE_TRADING} bind:data="{settings[SETTINGS.ENABLE_TRADING]}"/>
 					<Setting key={SETTINGS.SHOW_TRADE_BUTTON} bind:data="{settings[SETTINGS.SHOW_TRADE_BUTTON]}"/>
 					<Setting key={SETTINGS.INSPECT_ITEMS_IN_TRADE} bind:data="{settings[SETTINGS.INSPECT_ITEMS_IN_TRADE]}"/>
