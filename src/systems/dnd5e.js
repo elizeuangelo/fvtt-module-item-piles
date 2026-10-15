@@ -1,6 +1,6 @@
-import GiveItems from "../src/applications/dialogs/give-items-dialog/give-items-dialog.js";
-import PrivateAPI from "../src/API/private-api.js";
-import CONSTANTS from "../src/constants/constants.js";
+import GiveItems from "../applications/dialogs/give-items-dialog/give-items-dialog.js";
+import PrivateAPI from "../API/private-api.js";
+import CONSTANTS from "../constants/constants.js";
 
 export default {
 
@@ -58,8 +58,9 @@ export default {
 	"ITEM_TYPE_HANDLERS": {
 		"GLOBAL": {
 			[CONSTANTS.ITEM_TYPE_METHODS.IS_CONTAINED]: ({ item }) => {
+				// Item Piles groups items by this value, so it must be the container's ID rather than a boolean
 				const itemData = item instanceof Item ? item.toObject() : item;
-				return !!itemData?.system?.container;
+				return itemData?.system?.container;
 			},
 			[CONSTANTS.ITEM_TYPE_METHODS.IS_CONTAINED_PATH]: "system.container"
 		},

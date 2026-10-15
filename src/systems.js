@@ -1,6 +1,10 @@
-export const SYSTEMS = {
+import dnd5e from "./systems/dnd5e.js";
 
-	SUPPORTED_SYSTEMS: {},
+// This fork only supports D&D 5e 3.x, from the 3.2.0 attunement data changes onwards
+const DND5E_MINIMUM_VERSION = "3.2.0";
+const DND5E_UNSUPPORTED_VERSION = "4.0.0";
+
+export const SYSTEMS = {
 
 	DEFAULT_SETTINGS: {
 		VERSION: "",
@@ -33,7 +37,10 @@ export const SYSTEMS = {
 	},
 
 	get HAS_SYSTEM_SUPPORT() {
-		return !!this.SUPPORTED_SYSTEMS?.[game.system.id.toLowerCase()];
+		if (game.system.id !== "dnd5e") return false;
+		const version = game.system.version;
+		return !foundry.utils.isNewerVersion(DND5E_MINIMUM_VERSION, version)
+			&& foundry.utils.isNewerVersion(DND5E_UNSUPPORTED_VERSION, version);
 	},
 
 	_currentSystem: false,
@@ -42,33 +49,10 @@ export const SYSTEMS = {
 
 		if (this._currentSystem) return this._currentSystem;
 
-		const system = this.SUPPORTED_SYSTEMS?.[game.system.id.toLowerCase()];
-		if (!system) return this.DEFAULT_SETTINGS;
+		if (!this.HAS_SYSTEM_SUPPORT) return this.DEFAULT_SETTINGS;
 
-		if (system[game.system.version]) {
-			this._currentSystem = foundry.utils.mergeObject(this.DEFAULT_SETTINGS, system[game.system.version]);
-			return this._currentSystem;
-		}
-
-		const versions = Object.keys(system);
-		if (versions.length === 1) {
-			this._currentSystem = foundry.utils.mergeObject(this.DEFAULT_SETTINGS, system[versions[0]]);
-			return this._currentSystem;
-		}
-
-		versions.sort((a, b) => {
-			return a === "latest" || b === "latest" ? -Infinity : (foundry.utils.isNewerVersion(b, a) ? -1 : 1);
-		});
-		const version = versions.find(version => {
-			return version === "latest" || !foundry.utils.isNewerVersion(game.system.version, version);
-		});
-
-		this._currentSystem = foundry.utils.mergeObject(this.DEFAULT_SETTINGS, system[version]);
+		this._currentSystem = foundry.utils.mergeObject(this.DEFAULT_SETTINGS, dnd5e);
 
 		return this._currentSystem;
-	},
-
-	addSystem(data, version = "latest") {
-		this.SUPPORTED_SYSTEMS[game.system.id.toLowerCase()] = { [version]: data };
 	}
 };

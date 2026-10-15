@@ -16,15 +16,6 @@
 		name: "",
 		type: "",
 		system: Object.values(templates)
-			.map(obj => {
-				if (game.system.id === "custom-system-builder" && obj['templates']) {
-					for (const template of obj['templates']) {
-						obj = foundry.utils.mergeObject(obj, templates["templates"][template]);
-					}
-					delete obj['templates'];
-				}
-				return obj;
-			})
 			.reduce((acc, obj) => {
 				return foundry.utils.mergeObject(acc, obj);
 			}, {})

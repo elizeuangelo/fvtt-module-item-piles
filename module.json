@@ -1,13 +1,13 @@
 {
   "id": "item-piles",
   "title": "Item Piles",
-  "description": "This module adds the ability for items to be dropped onto the ground, and then picked up.",
+  "description": "This module adds the ability for items to be dropped onto the ground, and then picked up. Fork of Item Piles 3.2.33 with built-in D&D 5e 3.x support.",
   "version": "100.0.0",
   "library": "false",
   "compatibility": {
     "minimum": "12",
-    "verified": "13",
-    "maximum": "13"
+    "verified": "12",
+    "maximum": "12"
   },
   "authors": [
     {
@@ -94,12 +94,22 @@
         "id": "lib-wrapper",
         "type": "module"
       }
+    ],
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "3.2.0",
+          "verified": "3.3.1"
+        }
+      }
     ]
   },
   "socket": true,
-  "url": "https://github.com/fantasycalendar/FoundryVTT-ItemPiles",
-  "manifest": "https://github.com/fantasycalendar/FoundryVTT-ItemPiles/releases/latest/download/manifest.json",
-  "download": "https://github.com/fantasycalendar/FoundryVTT-ItemPiles/releases/latest/download/module.zip",
-  "readme": "https://github.com/fantasycalendar/FoundryVTT-ItemPiles/blob/master/README.md",
-  "bugs": "https://github.com/fantasycalendar/FoundryVTT-ItemPiles/issues"
+  "url": "https://github.com/elizeuangelo/fvtt-module-item-piles",
+  "manifest": "https://github.com/elizeuangelo/fvtt-module-item-piles/releases/latest/download/module.json",
+  "download": "https://github.com/elizeuangelo/fvtt-module-item-piles/releases/latest/download/module.zip",
+  "readme": "https://github.com/elizeuangelo/fvtt-module-item-piles/blob/main/README.md",
+  "bugs": "https://github.com/elizeuangelo/fvtt-module-item-piles/issues"
 }

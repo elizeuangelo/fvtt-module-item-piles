@@ -23,7 +23,6 @@ const SETTINGS = {
 	POPULATION_TABLES_FOLDER: "populationTablesFolder",
 	PRICE_PRESETS: "pricePresets",
 	HIDE_TOKEN_BORDER: "hideTokenBorder",
-	WELCOME_SHOWN: "welcome-shown",
 
 	// Style settings
 	CSS_VARIABLES: "cssVariables",
@@ -83,13 +82,6 @@ const SETTINGS = {
 	},
 
 	DEFAULTS: () => ({
-
-		[SETTINGS.WELCOME_SHOWN]: {
-			scope: "world",
-			config: false,
-			default: false,
-			type: Boolean,
-		},
 
 		[SETTINGS.CURRENCIES]: {
 			name: "ITEM-PILES.Settings.Currencies.Title",

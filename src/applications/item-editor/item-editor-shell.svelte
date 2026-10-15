@@ -199,32 +199,25 @@
 
 				{#if activeTab === 'price'}
 
-					{#if game.system.id !== "pf2e"}
-						{#if game.system.id !== "wfrp4e"}
-							<div class="form-group">
-								<label style="flex:4;">
-									{localize("ITEM-PILES.Applications.ItemEditor.PriceTab.BasePrice")}<br>
-									<p>{localize("ITEM-PILES.Applications.ItemEditor.PriceTab.BasePriceExplanation")}</p>
-								</label>
-								<input type="text" bind:value={$price} on:change={() => {
-                const forceNumber = game.system.id === "dnd5e";
-								const isPriceNumber = !isNaN(Utilities.sanitizeNumber($price));
-                $price = isPriceNumber || forceNumber
-                	? Math.max(0, isPriceNumber ? Utilities.sanitizeNumber($price) : oldPrice)
-                	: $price;
-                oldPrice = $price;
-              }}/>
-							</div>
-						{/if}
+					<div class="form-group">
+						<label style="flex:4;">
+							{localize("ITEM-PILES.Applications.ItemEditor.PriceTab.BasePrice")}<br>
+							<p>{localize("ITEM-PILES.Applications.ItemEditor.PriceTab.BasePriceExplanation")}</p>
+						</label>
+						<input type="text" bind:value={$price} on:change={() => {
+							const isPriceNumber = !isNaN(Utilities.sanitizeNumber($price));
+							$price = Math.max(0, isPriceNumber ? Utilities.sanitizeNumber($price) : oldPrice);
+							oldPrice = $price;
+						}}/>
+					</div>
 
-						<div class="form-group">
-							<label style="flex:4;">
-								{localize("ITEM-PILES.Applications.ItemEditor.PriceTab.QuantityForPrice")}<br>
-								<p>{localize("ITEM-PILES.Applications.ItemEditor.PriceTab.QuantityForPriceExplanation")}</p>
-							</label>
-							<input type="number" bind:value={$quantityForPrice}/>
-						</div>
-					{/if}
+					<div class="form-group">
+						<label style="flex:4;">
+							{localize("ITEM-PILES.Applications.ItemEditor.PriceTab.QuantityForPrice")}<br>
+							<p>{localize("ITEM-PILES.Applications.ItemEditor.PriceTab.QuantityForPriceExplanation")}</p>
+						</label>
+						<input type="number" bind:value={$quantityForPrice}/>
+					</div>
 
 					<div class="form-group slider-group">
 						<label style="flex:3;">

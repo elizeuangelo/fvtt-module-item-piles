@@ -1,5 +1,10 @@
 # Item Piles
 
+> **This is a fork of [Item Piles](https://github.com/fantasycalendar/FoundryVTT-ItemPiles) 3.2.33** for Foundry VTT v12 and D&D 5e 3.x (3.2.0 or later).
+> D&D 5e support is built in, so the "Item Piles: D&D 5e" add-on is not needed, and other game systems are not supported.
+> It keeps the `item-piles` module id so existing piles and add-ons such as Auctioneer and Bankers keep working.
+> Install it with the manifest URL `https://github.com/elizeuangelo/fvtt-module-item-piles/releases/latest/download/module.json`.
+
 ![Latest Release Download Count](https://img.shields.io/github/downloads/fantasycalendar/FoundryVTT-ItemPiles/latest/module.zip?color=2b82fc&label=DOWNLOADS&style=for-the-badge) [![Forge Installs](https://img.shields.io/badge/dynamic/json?label=Forge%20Installs&query=package.installs&suffix=%25&url=https%3A%2F%2Fforge-vtt.com%2Fapi%2Fbazaar%2Fpackage%2Fitem-piles&colorB=006400&style=for-the-badge)](https://forge-vtt.com/bazaar#package=item-piles) ![Foundry Core Compatible Version](https://img.shields.io/badge/dynamic/json.svg?url=https%3A%2F%2Fgithub.com%2Ffantasycalendar%2FFoundryVTT-ItemPiles%2Freleases%2Flatest%2Fdownload%2Fmodule.json&label=Foundry%20Compatible%20Version&query=$.compatibility.minimum&colorB=orange&style=for-the-badge)![Foundry Core Supported Version](https://img.shields.io/badge/dynamic/json.svg?url=https%3A%2F%2Fgithub.com%2Ffantasycalendar%2FFoundryVTT-ItemPiles%2Freleases%2Flatest%2Fdownload%2Fmodule.json&label=Foundry%20Verified%20Version&query=$.compatibility.verified&colorB=orange&style=for-the-badge) ![Latest Version](https://img.shields.io/badge/dynamic/json.svg?url=https%3A%2F%2Fgithub.com%2Ffantasycalendar%2FFoundryVTT-ItemPiles%2Freleases%2Flatest%2Fdownload%2Fmodule.json&label=Latest%20Release&prefix=v&query=$.version&colorB=red&style=for-the-badge)
 
 ---

@@ -124,8 +124,6 @@ Hooks.once("ready", () => {
 
 		registerSystemLibwrappers();
 
-		displayChatMessage();
-
 	}, 100);
 
 });
@@ -153,45 +151,3 @@ Hooks.on(CONSTANTS.HOOKS.RESET_SETTINGS, async () => {
 	}
 	checkSystem();
 })
-
-
-async function displayChatMessage() {
-
-	const shown = game.settings.get(CONSTANTS.MODULE_NAME, "welcome-shown")
-
-	if (!game.user.isGM || shown) return;
-	await game.settings.set(CONSTANTS.MODULE_NAME, "welcome-shown", true);
-
-	ChatMessage.create({
-		content: `
-<div class="item-piles-welcome">
-
-  <p style="margin:0 0 8px;color:#f0b90b; font-size: 1.3rem; font-weight: bold;">System Support Update</p>
-
-  <p style="margin:6px 0;">
-    To keep Item Piles light and easier to maintain for a single dev on their free time, the core module is now strictly <strong>system-agnostic</strong>.
-  </p>
-  <p>
-    Instead of bundling 30+ system configurations, each game system or community add-on for that system will have to provide its own Item Piles system-specific settings.
-  </p>
-
-  <p style="margin:6px 0;">
-    <em>What does this mean for you?</em>
-  </p>
-  <ul style="margin:4px 0 8px 22px;padding:0;">
-    <li><strong>D&D 5e</strong>: install
-      <a href="https://foundryvtt.com/packages/itempilesdnd5e" target="_blank" style="color:#4fc3f7;">Item Piles: D&D 5e</a>.
-    </li>
-    <li><strong>Other systems</strong>: watch that system’s page or Discord for an “Item Piles” companion. The game will still load; some features may be limited until a profile appears.</li>
-  </ul>
-
-  <p style="margin:6px 0;">
-    Your existing <strong>item piles</strong> will continue to work exactly as before, but without a system-specific module, Item Piles may stop working for your specific system in the long term.
-  </p>
-
-  <p style="margin:6px 0;">Thank you for helping keep the loot flowing! 🎒</p>
-</div>
-`
-	})
-
-}

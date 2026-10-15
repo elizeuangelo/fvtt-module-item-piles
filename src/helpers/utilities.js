@@ -160,22 +160,10 @@ export function getItemTypesThatCanStack() {
 
 	if (!itemTypesWithQuantities) {
 
-		itemTypesWithQuantities = new Set();
-
-		if (game.system.id === "custom-system-builder") {
-			const quantityAttribute = game.itempiles.API.ITEM_QUANTITY_ATTRIBUTE.split(".").pop();
-			const itemTemplates = game.items
-				.filter(_i => (_i?.isTemplateItem() || _i?.templateSystem?.isTemplate) && _i?.templateSystem?.getKeys)
-				.filter(_i => _i.templateSystem.getKeys().has(quantityAttribute));
-			for (const item of itemTemplates) {
-				itemTypesWithQuantities.add(item.name);
-			}
-		}
-
 		const unstackableItemTypes = Helpers.getSetting(SETTINGS.UNSTACKABLE_ITEM_TYPES);
 		const templates = getDocumentTemplates("Item");
 		const types = new Set(Object.keys(templates));
-		itemTypesWithQuantities = new Set([...itemTypesWithQuantities, ...types.filter(type => {
+		itemTypesWithQuantities = new Set([...types.filter(type => {
 			let itemTemplate = {
 				system: foundry.utils.deepClone(templates[type])
 			};
@@ -194,12 +182,6 @@ export function getItemTypesThatCanStack() {
 
 export function isItemStackable(itemData) {
 	getItemTypesThatCanStack();
-	if (game.system.id === "custom-system-builder" && itemData?.system?.template) {
-		const templateItem = game.items.get(itemData?.system?.template);
-		if (templateItem) {
-			return itemTypesWithQuantities.has(templateItem.name)
-		}
-	}
 	return itemTypesWithQuantities.has(itemData.type);
 }
 
