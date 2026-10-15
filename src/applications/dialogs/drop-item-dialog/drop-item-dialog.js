@@ -25,11 +25,18 @@ export default class DropItemDialog extends SvelteApplication {
 					target
 				}
 			},
-			close: () => this.options.resolve?.(null),
 			...options
 		});
 		this.item = item;
 		this.target = target;
+	}
+
+	/**
+	 * Resolves with null when the dialog is cancelled or closed, after a submit this does nothing as it already resolved
+	 */
+	async close(options) {
+		this.options.resolve?.(null);
+		return super.close(options);
 	}
 
 	static get defaultOptions() {

@@ -399,13 +399,21 @@ export default class PrivateAPI {
 
 		const targetTransaction = new Transaction(targetActor);
 		await targetTransaction.appendItemChanges(sourceUpdates.itemDeltas);
-		const targetUpdates = targetTransaction.prepare();
 
-		// Preparing gives created items new IDs and moves any item whose container isn't created with it to the top
-		// level, which would take a moved item that didn't stack out of the container it was dropped onto
-		if (containerPath && containerId) {
-			const createdItem = targetUpdates.itemsToCreate.find(itemData => !foundry.utils.getProperty(itemData, containerPath));
-			if (createdItem) foundry.utils.setProperty(createdItem, containerPath, containerId);
+		// Preparing gives created items new IDs but only keeps one level of container nesting, moving anything deeper,
+		// and a moved item dropped onto a container, to the top level, so the original layout is restored afterwards
+		const createdLayout = targetTransaction.itemsToCreate.map(itemData => ({
+			itemData,
+			id: itemData._id,
+			containerId: containerPath ? foundry.utils.getProperty(itemData, containerPath) : null
+		}));
+		const targetUpdates = targetTransaction.prepare();
+		if (containerPath) {
+			const newIds = new Map(createdLayout.map(({ itemData, id }) => [id, itemData._id]));
+			for (const created of createdLayout) {
+				const newContainerId = created.id === item.id ? containerId : newIds.get(created.containerId);
+				if (newContainerId) foundry.utils.setProperty(created.itemData, containerPath, newContainerId);
+			}
 		}
 
 		const hookResult = Helpers.hooks.call(CONSTANTS.HOOKS.ITEM.PRE_TRANSFER, sourceActor, sourceUpdates, targetActor, targetUpdates, false);
@@ -418,6 +426,18 @@ export default class PrivateAPI {
 			await sourceTransaction.commit();
 		} catch (err) {
 			error = err;
+		}
+
+		// Another module can also cancel the source changes without throwing, which leaves the same duplicate
+		if (!error) {
+			const notRemoved = sourceUpdates.itemsToDelete.some(id => sourceActor.items.has(id));
+			const notReduced = sourceUpdates.itemsToUpdate.some(update => {
+				const sourceItem = sourceActor.items.get(update._id);
+				return !sourceItem || Utilities.getItemQuantity(sourceItem) !== Utilities.getItemQuantity(update);
+			});
+			if (notRemoved || notReduced) {
+				error = new Error(`Item Piles | ${sourceActor.name}'s items were not removed or reduced, another module cancelled the change`);
+			}
 		}
 
 		if (!error) {
