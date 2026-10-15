@@ -3,9 +3,23 @@ import PrivateAPI from "../API/private-api.js";
 import CONSTANTS from "../constants/constants.js";
 import { registerSheetTransfers } from "./dnd5e-sheet-transfers.js";
 
+// Items linked by the Item Linking module only stack with items linked to the same base item, and items that were
+// unlinked from a base item don't stack with ones still linked to it
+const ITEM_LINKING_SIMILARITIES = ["flags.item-linking.isLinked", "flags.item-linking.baseItem"];
+
 export default {
 
-	"VERSION": "1.0.8",
+	"VERSION": "1.0.9",
+
+	// Brings worlds on the previous settings version up to date without resetting their other settings
+	"SOFT_MIGRATIONS": {
+		"1.0.8-1.0.9": {
+			ITEM_SIMILARITIES: (similarities) => [
+				...similarities,
+				...ITEM_LINKING_SIMILARITIES.filter(path => !similarities.includes(path))
+			]
+		}
+	},
 
 	// The actor class type is the type of actor that will be used for the default item pile actor that is created on first item drop.
 	"ACTOR_CLASS_TYPE": "character",
@@ -156,7 +170,7 @@ export default {
 	},
 
 	// Item similarities determines how item piles detect similarities and differences in the system
-	"ITEM_SIMILARITIES": ["name", "type", "system.container"],
+	"ITEM_SIMILARITIES": ["name", "type", "system.container", ...ITEM_LINKING_SIMILARITIES],
 
 	// Currencies in item piles is a versatile system that can accept actor attributes (a number field on the actor's sheet) or items (actual items in their inventory)
 	// In the case of attributes, the path is relative to the "actor.system"

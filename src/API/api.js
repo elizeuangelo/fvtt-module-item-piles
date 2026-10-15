@@ -147,12 +147,17 @@ class API {
 	}
 
 	/**
-	 * The attributes for detecting item similarities
+	 * The attributes for detecting item similarities. Paths into a module's flags only count while that module is
+	 * active, so flags left behind by a disabled or uninstalled module don't keep otherwise identical items apart.
 	 *
 	 * @returns {Array<string>}
 	 */
 	static get ITEM_SIMILARITIES() {
-		return Helpers.getSetting(SETTINGS.ITEM_SIMILARITIES);
+		return Helpers.getSetting(SETTINGS.ITEM_SIMILARITIES).filter(path => {
+			const [root, scope] = path.split(".");
+			if (root !== "flags" || !scope || ["core", "world", game.system.id].includes(scope)) return true;
+			return game.modules.get(scope)?.active ?? false;
+		});
 	}
 
 	/**

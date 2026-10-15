@@ -37,7 +37,11 @@ export async function applySoftMigration(migrationKey) {
 	for (const [key, values] of Object.entries(migrationSettings)) {
 		const settingsKey = SETTINGS[key];
 		const currentSettingValue = Helpers.getSetting(settingsKey);
-		await Helpers.setSetting(settingsKey, foundry.utils.mergeObject(currentSettingValue, values));
+		// A function receives the current value, for changes that merging can't express, like appending to an array
+		const newSettingValue = typeof values === "function"
+			? values(currentSettingValue)
+			: foundry.utils.mergeObject(currentSettingValue, values);
+		await Helpers.setSetting(settingsKey, newSettingValue);
 	}
 	await Helpers.setSetting(SETTINGS.SYSTEM_VERSION, SYSTEMS.DATA.VERSION ?? "");
 }
