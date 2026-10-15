@@ -138,6 +138,13 @@ export default class Transaction {
 		}
 	}
 
+	/**
+	 * The name appendDocumentChanges had before Item Piles 3.1, still used by Item Piles: Auctioneer
+	 */
+	async appendActorChanges(attributes, options = {}) {
+		return this.appendDocumentChanges(attributes, options);
+	}
+
 	async appendDocumentChanges(attributes, {
 		set = false, remove = false, type = "attribute", onlyDelta = false
 	} = {}) {

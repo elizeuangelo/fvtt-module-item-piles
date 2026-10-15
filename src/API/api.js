@@ -10,11 +10,22 @@ import TradeAPI from "./trade-api.js";
 import PrivateAPI from "./private-api.js";
 import ItemPileConfig from "../applications/item-pile-config/item-pile-config.js";
 import GiveItems from "../applications/dialogs/give-items-dialog/give-items-dialog.js";
+import Transaction from "../helpers/transaction.js";
 
 class API {
 	/**
 	 * @class API
 	 */
+
+	/**
+	 * The Transaction class, also available as game.itempiles.Transaction. Item Piles: Auctioneer uses it from here
+	 * when no GM is connected.
+	 *
+	 * @returns {typeof Transaction}
+	 */
+	static get Transaction() {
+		return Transaction;
+	}
 
 	/**
 	 * The actor class type used for the original item pile actor in this system
