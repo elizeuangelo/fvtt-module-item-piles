@@ -1171,7 +1171,7 @@ class API {
 
 		if (interactionId && typeof interactionId !== "string") throw Helpers.custom_error(`addItems | interactionId must be of type string`);
 
-		return ItemPileSocket.executeAsGM(ItemPileSocket.HANDLERS.ADD_ITEMS, targetUuid, itemsToAdd, game.user.id, {
+		return ItemPileSocket.executeForTarget(ItemPileSocket.HANDLERS.ADD_ITEMS, targetUuid, itemsToAdd, game.user.id, {
 			removeExistingActorItems, interactionId, skipVaultLogging
 		});
 	}
@@ -1227,7 +1227,7 @@ class API {
 			if (typeof interactionId !== "string") throw Helpers.custom_error(`removeItems | interactionId must be of type string`);
 		}
 
-		return ItemPileSocket.executeAsGM(ItemPileSocket.HANDLERS.REMOVE_ITEMS, targetUuid, items, game.user.id, {
+		return ItemPileSocket.executeForTarget(ItemPileSocket.HANDLERS.REMOVE_ITEMS, targetUuid, items, game.user.id, {
 			interactionId,
 			skipVaultLogging
 		});
@@ -1389,7 +1389,7 @@ class API {
 			if (typeof interactionId !== "string") throw Helpers.custom_error(`setAttributes | interactionId must be of type string`);
 		}
 
-		return ItemPileSocket.executeAsGM(ItemPileSocket.HANDLERS.SET_ATTRIBUTES, targetUuid, attributes, game.user.id, {
+		return ItemPileSocket.executeForTarget(ItemPileSocket.HANDLERS.SET_ATTRIBUTES, targetUuid, attributes, game.user.id, {
 			interactionId
 		});
 
@@ -1423,7 +1423,7 @@ class API {
 			if (typeof interactionId !== "string") throw Helpers.custom_error(`addAttributes | interactionId must be of type string`);
 		}
 
-		return ItemPileSocket.executeAsGM(ItemPileSocket.HANDLERS.ADD_ATTRIBUTES, targetUuid, attributes, game.user.id, {
+		return ItemPileSocket.executeForTarget(ItemPileSocket.HANDLERS.ADD_ATTRIBUTES, targetUuid, attributes, game.user.id, {
 			skipVaultLogging,
 			interactionId
 		});
@@ -1473,7 +1473,7 @@ class API {
 			if (typeof interactionId !== "string") throw Helpers.custom_error(`removeAttributes | interactionId must be of type string`);
 		}
 
-		return ItemPileSocket.executeAsGM(ItemPileSocket.HANDLERS.REMOVE_ATTRIBUTES, targetUuid, attributesToSend, game.user.id, {
+		return ItemPileSocket.executeForTarget(ItemPileSocket.HANDLERS.REMOVE_ATTRIBUTES, targetUuid, attributesToSend, game.user.id, {
 			skipVaultLogging,
 			interactionId
 		});
@@ -1867,7 +1867,7 @@ class API {
 			throw Helpers.custom_error(`updateCurrency | Could not determine currencies to update with string "${currencies}"`);
 		}
 
-		return ItemPileSocket.executeAsGM(ItemPileSocket.HANDLERS.UPDATE_CURRENCIES, targetUuid, currencies, game.user.id, { interactionId });
+		return ItemPileSocket.executeForTarget(ItemPileSocket.HANDLERS.UPDATE_CURRENCIES, targetUuid, currencies, game.user.id, { interactionId });
 
 	}
 
@@ -1898,7 +1898,7 @@ class API {
 			throw Helpers.custom_error(`addCurrency | Could not determine currencies to add with string "${currencies}"`);
 		}
 
-		return ItemPileSocket.executeAsGM(ItemPileSocket.HANDLERS.ADD_CURRENCIES, targetUuid, currencies, game.user.id, { interactionId });
+		return ItemPileSocket.executeForTarget(ItemPileSocket.HANDLERS.ADD_CURRENCIES, targetUuid, currencies, game.user.id, { interactionId });
 
 	}
 
@@ -1945,7 +1945,7 @@ class API {
 			throw Helpers.custom_error(`removeCurrencies | ${targetActor.name} cannot afford "${currencies}" without receiving change!`);
 		}
 
-		return ItemPileSocket.executeAsGM(ItemPileSocket.HANDLERS.REMOVE_CURRENCIES, targetUuid, currencies, game.user.id, { interactionId });
+		return ItemPileSocket.executeForTarget(ItemPileSocket.HANDLERS.REMOVE_CURRENCIES, targetUuid, currencies, game.user.id, { interactionId });
 
 	}
 

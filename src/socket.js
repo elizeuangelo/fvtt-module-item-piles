@@ -1,7 +1,8 @@
 import CONSTANTS from "./constants/constants.js";
 import * as Helpers from "./helpers/helpers.js";
 import { debug } from "./helpers/helpers.js";
-import { stringIsUuid } from "./helpers/utilities.js";
+import { getActor, stringIsUuid } from "./helpers/utilities.js";
+import { isValidItemPile } from "./helpers/pile-utilities.js";
 import PrivateAPI from "./API/private-api.js";
 import TradeAPI from "./API/trade-api.js";
 import ChatAPI from "./API/chat-api.js";
@@ -187,6 +188,35 @@ export default class ItemPileSocket {
 			return false;
 		}
 		return Requests.timedSocketRequest(handler, async () => this.socket.executeAsGM(handler, ...args));
+	}
+
+	/**
+	 * Executes a handler that changes a single target actor. If the current user owns the target and it is not an
+	 * item pile, the handler runs on this client, so no GM needs to be connected. Otherwise, it is sent to a GM.
+	 *
+	 * Item piles (including vaults and merchants) always go to a GM, as their macros and vault logs expect GM permissions.
+	 */
+	static executeForTarget(handler, targetUuid, ...args) {
+		const targetActor = getActor(targetUuid);
+		const canExecuteLocally = targetActor instanceof Actor
+			&& targetActor.isOwner
+			&& !isValidItemPile(targetActor);
+		if (!canExecuteLocally) {
+			return this.executeAsGM(handler, targetUuid, ...args);
+		}
+		return this.executeLocally(handler, targetUuid, ...args);
+	}
+
+	static async executeLocally(handler, ...args) {
+		// Clone the arguments so the handler cannot mutate the caller's data, like it couldn't over the socket
+		args = foundry.utils.deepClone(args);
+		try {
+			return await this.BINDINGS[handler](...args);
+		} catch (err) {
+			// Match the socket path, which logs errors and resolves to false
+			console.error(err);
+			return false;
+		}
 	}
 
 	static executeAsUser(handler, userId, ...args) {
