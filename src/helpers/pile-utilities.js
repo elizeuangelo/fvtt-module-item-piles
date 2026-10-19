@@ -1737,9 +1737,9 @@ export function getPaymentData({
 
 	if (paymentData.totalCurrencyCost && !seller && !buyer) {
 
+		// Other prices are appended further down, along with every other case
 		paymentData.finalPrices = getPriceArray(paymentData.totalCurrencyCost, recipientCurrencies)
-			.filter(currency => !currency.secondary)
-			.concat(paymentData.otherPrices);
+			.filter(currency => !currency.secondary);
 
 	} else if (paymentData.totalCurrencyCost) {
 
