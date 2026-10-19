@@ -1737,9 +1737,11 @@ export function getPaymentData({
 
 	if (paymentData.totalCurrencyCost && !seller && !buyer) {
 
-		// Other prices are appended further down, along with every other case
+		// Without a buyer, the quantity of each currency is simply its cost. Other prices are appended further down,
+		// along with every other case
 		paymentData.finalPrices = getPriceArray(paymentData.totalCurrencyCost, recipientCurrencies)
-			.filter(currency => !currency.secondary);
+			.filter(currency => !currency.secondary)
+			.map(currency => ({ ...currency, quantity: currency.cost }));
 
 	} else if (paymentData.totalCurrencyCost) {
 
