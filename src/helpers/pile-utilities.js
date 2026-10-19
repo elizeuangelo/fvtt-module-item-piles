@@ -1123,7 +1123,10 @@ export function getPriceFromString(str, currencyList = false) {
 	for (const part of parts) {
 		for (const currency of currencies) {
 
-			if (part[2] !== currency.identifier || !currency.exchangeRate) continue;
+			if (part[2] !== currency.identifier) continue;
+
+			// Secondary currencies have no exchange rate and don't count towards the overall cost
+			const exchangeRate = currency.secondary ? 0 : (currency.exchangeRate || 0);
 
 			let lowerCasePart = part[1].toLowerCase();
 			if (lowerCasePart.startsWith("d") || lowerCasePart.match(/\d*d\d+/g)) {
@@ -1133,12 +1136,12 @@ export function getPriceFromString(str, currencyList = false) {
 				for (let i = 0; i < diceQuantity; i++) {
 					let num = Math.ceil(Math.random() * diceSize);
 					currency.quantity += num;
-					overallCost += num * currency.exchangeRate;
+					overallCost += num * exchangeRate;
 				}
 			} else {
 				const roll = new Roll(part[1]).evaluateSync()
 				currency.quantity = roll.total;
-				overallCost += roll.total * currency.exchangeRate;
+				overallCost += roll.total * exchangeRate;
 			}
 			currenciesToReturn.push(currency);
 		}
