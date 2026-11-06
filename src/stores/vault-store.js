@@ -341,6 +341,8 @@ export class VaultStore extends ItemPileStore {
 		let validPosition = get(this.dragPosition);
 		this.dragPosition.set({ x: 0, y: 0, w: 1, h: 1, flipped: false, active: false });
 
+		if (data.type === "Item" && this.warnIfNeedsGM()) return false;
+
 		if (data.type === "Actor" && game.user.isGM) {
 			const newRecipient = data.uuid ? (await fromUuid(data.uuid)) : game.actors.get(data.id);
 			this.refreshAppSize();
@@ -547,6 +549,8 @@ export class VaultItem extends PileItem {
 
 	async take() {
 
+		if (this.store.warnIfNeedsGM()) return;
+
 		const pileData = get(this.store.pileData);
 		const itemFlagData = get(this.itemFlagData);
 
@@ -579,6 +583,8 @@ export class VaultItem extends PileItem {
 
 	async split(x, y, flipped) {
 
+		if (this.store.warnIfNeedsGM()) return;
+
 		let quantity = await DropItemDialog.show(this.item, this.store.actor, {
 			localizationTitle: "SplitItem", quantityAdjustment: -1
 		});
@@ -603,6 +609,8 @@ export class VaultItem extends PileItem {
 	}
 
 	async merge(itemToMerge) {
+
+		if (this.store.warnIfNeedsGM()) return;
 
 		const itemDelta = await game.itempiles.API.removeItems(this.store.actor, [{
 			_id: itemToMerge.id

@@ -204,6 +204,7 @@ export class PileItem extends PileBaseItem {
 	}
 
 	take() {
+		if (this.store.warnIfNeedsGM()) return;
 		const quantity = Math.min(get(this.currentQuantity), get(this.quantityLeft));
 		if (!quantity) return;
 		return game.itempiles.API.transferItems(
@@ -346,6 +347,7 @@ export class PileAttribute extends PileBaseItem {
 	}
 
 	take() {
+		if (this.store.warnIfNeedsGM()) return;
 		const quantity = Math.min(get(this.currentQuantity), get(this.quantityLeft));
 		return game.itempiles.API.transferAttributes(
 			this.parent,

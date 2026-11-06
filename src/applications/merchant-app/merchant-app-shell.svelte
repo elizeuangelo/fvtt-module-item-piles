@@ -11,6 +11,7 @@
 	import Tabs from "../components/Tabs.svelte";
 	import { get, writable } from "svelte/store";
 	import PrivateAPI from "../../API/private-api.js";
+	import GMRequiredNotice from "../components/GMRequiredNotice.svelte";
 
 	const { application } = getContext('#external');
 
@@ -23,6 +24,7 @@
 	export let recipientStore = recipient ? MerchantStore.make(application, recipient, merchant, { recipientPileData: store.pileData }) : false;
 
 	let pileData = store.pileData;
+	const needsGM = store.needsGM;
 
 	onDestroy(() => {
 		store.onDestroy();
@@ -97,6 +99,9 @@
 <ApplicationShell bind:elementRoot>
 	<DropZone callback={dropData} style="display: flex; flex-direction: column; height: 100%;">
 		<MerchantTopBar {store}/>
+		{#if $needsGM && store.recipient}
+			<GMRequiredNotice message="ITEM-PILES.Warnings.NeedsGMMerchant"/>
+		{/if}
 		<Tabs bind:activeTab={$activeTab}
 		      bind:tabs="{tabs}"
 		      separateElements

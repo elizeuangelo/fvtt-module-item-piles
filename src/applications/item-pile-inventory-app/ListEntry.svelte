@@ -17,6 +17,7 @@
 	const quantity = entry.quantity;
 	const currentQuantity = entry.currentQuantity;
 	const pileData = store.pileData;
+	const needsGM = store.needsGM;
 
 	let element = false;
 
@@ -117,7 +118,7 @@
 			on:click={() => { entry.take() }}
 			class="item-piles-item-take-button"
 			type="button"
-			disabled={!$quantityLeft || !$quantity}>
+			disabled={!$quantityLeft || !$quantity || $needsGM}>
 			{localize("ITEM-PILES.Inspect.Take")}
 		</button>
 

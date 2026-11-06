@@ -292,8 +292,20 @@ export default class MerchantStore extends ItemPileStore {
 		Helpers.custom_notify(localize("ITEM-PILES.Notifications.UpdateMerchantSuccess"));
 	}
 
+	/**
+	 * Buying and selling always go through a GM, as they change two actors that do not both belong to the buyer.
+	 */
+	canInteractWithoutGM() {
+		return false;
+	}
+
+	get needsGMLocalization() {
+		return "ITEM-PILES.Warnings.NeedsGMMerchant";
+	}
+
 	tradeItem(pileItem, selling) {
 		if (get(pileItem.itemFlagData).notForSale && !game.user.isGM) return;
+		if (this.warnIfNeedsGM()) return;
 		TradeMerchantItemDialog.show(pileItem, this.actor, this.recipient, { selling });
 	}
 

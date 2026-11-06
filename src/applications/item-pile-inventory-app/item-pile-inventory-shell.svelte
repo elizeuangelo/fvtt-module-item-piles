@@ -13,6 +13,7 @@
 	import ItemPileStore from "../../stores/item-pile-store.js";
 	import CategorizedItemList from "./CategorizedItemList.svelte";
 	import DropZone from "../components/DropZone.svelte";
+	import GMRequiredNotice from "../components/GMRequiredNotice.svelte";
 
 	const { application } = getContext('#external');
 
@@ -29,6 +30,8 @@
 	let editQuantities = store.editQuantities;
 	let pileData = store.pileData;
 	let deleted = store.deleted;
+	const needsGM = store.needsGM;
+	const gmConnected = store.gmConnected;
 
 	const items = store.allItems;
 	const currencies = store.currencies;
@@ -82,6 +85,10 @@
 
 				<ActorPicker {store}/>
 
+				{#if $needsGM && store.recipient}
+					<GMRequiredNotice/>
+				{/if}
+
 				{#if showSearchBar}
 					<div class="form-group item-piles-flexrow item-piles-top-divider item-piles-bottom-divider"
 					     style="margin-bottom: 0.5rem; align-items: center;" transition:fade={{duration: 250}}>
@@ -128,8 +135,10 @@
 				{/if}
 
 				{#if $pileData.splitAllEnabled && !$deleted}
-					<button type="button" on:click={() => { store.splitAll() }} disabled="{isPileEmpty || !canBeSplit}"
-					        data-tooltip={num_players === 0 && !isPileEmpty ? localize("ITEM-PILES.Inspect.SplitNoPlayers") : ""}>
+					<button type="button" on:click={() => { store.splitAll() }} disabled="{isPileEmpty || !canBeSplit || !$gmConnected}"
+					        data-tooltip={!$gmConnected
+					          ? localize("ITEM-PILES.Warnings.NeedsGMSplit")
+					          : (num_players === 0 && !isPileEmpty ? localize("ITEM-PILES.Inspect.SplitNoPlayers") : "")}>
 						<i class="fas fa-handshake"></i>
 						{#if $pileData.shareItemsEnabled}
 							{localize("ITEM-PILES.Inspect.SplitAll", { num_players })}
@@ -140,7 +149,7 @@
 				{/if}
 
 				{#if store.recipient && $pileData.takeAllEnabled && !$deleted}
-					<button type="submit" on:click={() => { store.takeAll() }} disabled="{isPileEmpty}">
+					<button type="submit" on:click={() => { store.takeAll() }} disabled="{isPileEmpty || $needsGM}">
 						<i class="fas fa-fist-raised"></i> {localize("ITEM-PILES.Inspect.TakeAll")}
 					</button>
 				{/if}

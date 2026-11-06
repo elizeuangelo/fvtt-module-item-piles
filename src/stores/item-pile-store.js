@@ -5,7 +5,7 @@ import * as Utilities from "../helpers/utilities.js";
 import * as PileUtilities from "../helpers/pile-utilities.js";
 import * as SharingUtilities from "../helpers/sharing-utilities.js";
 import * as Helpers from "../helpers/helpers.js";
-import { InterfaceTracker } from "../socket.js";
+import ItemPileSocket, { InterfaceTracker } from "../socket.js";
 import { PileAttribute, PileItem } from "./pile-item.js";
 import DropCurrencyDialog from "../applications/dialogs/drop-currency-dialog/drop-currency-dialog.js";
 import { SYSTEMS } from "../systems.js";
@@ -37,6 +37,9 @@ export default class ItemPileStore {
 		this.recipientShareData = writable({});
 
 		this.deleted = writable(false);
+
+		this.gmConnected = writable(true);
+		this.needsGM = writable(false);
 
 		this.search = writable("");
 		this.editQuantities = writable(true);
@@ -183,6 +186,8 @@ export default class ItemPileStore {
 			return false;
 		}
 
+		if (this.warnIfNeedsGM()) return false;
+
 		const item = await Item.implementation.fromDropData(data);
 		const itemData = item.toObject();
 
@@ -299,8 +304,55 @@ export default class ItemPileStore {
 			filterDebounce()
 		});
 
+		// Whether a GM is needed changes when a GM logs in or out, and when the pile's settings (like its macro) change
+		this.refreshGMRequirement();
+		this.subscribeTo(this.document, () => this.refreshGMRequirement());
+		const userConnectedHookId = Hooks.on("userConnected", () => this.refreshGMRequirement());
+		this.subscriptions.push(() => Hooks.off("userConnected", userConnectedHookId));
+
 		this.populateItems();
 
+	}
+
+	/**
+	 * Every actor that moving items or currencies in this window changes: the pile, and the actor taking from or
+	 * giving to it, if any.
+	 *
+	 * @returns {Array<string>}
+	 */
+	get interactionActorUuids() {
+		return [this.actor, this.recipient].filter(Boolean).map(actor => Utilities.getUuid(actor));
+	}
+
+	/**
+	 * Whether this user can move items or currencies in this window right now, which uses the same rules as the
+	 * transfers themselves (see ItemPileSocket.canExecuteLocally), so the window never offers something that fails.
+	 *
+	 * @returns {boolean}
+	 */
+	canInteractWithoutGM() {
+		return ItemPileSocket.canExecuteLocally(this.interactionActorUuids);
+	}
+
+	refreshGMRequirement() {
+		const gmConnected = Helpers.isGMConnected();
+		this.gmConnected.set(gmConnected);
+		this.needsGM.set(!gmConnected && !this.canInteractWithoutGM());
+	}
+
+	/**
+	 * Warns the user and returns true if moving items or currencies here needs a GM who is not online.
+	 *
+	 * @returns {boolean}
+	 */
+	warnIfNeedsGM() {
+		if (!get(this.needsGM)) return false;
+		Helpers.custom_warning(game.i18n.localize(this.needsGMLocalization), true);
+		return true;
+	}
+
+	get needsGMLocalization() {
+		return "ITEM-PILES.Warnings.NeedsGM";
 	}
 
 	populateItems() {
@@ -602,11 +654,13 @@ export default class ItemPileStore {
 	}
 
 	async depositCurrency() {
+		if (this.warnIfNeedsGM()) return;
 		const result = await DropCurrencyDialog.show(this.recipient, this.actor, { localization: "DepositCurrencies" });
 		return this._addCurrency(result, this.recipient, this.actor);
 	}
 
 	async withdrawCurrency() {
+		if (this.warnIfNeedsGM()) return;
 		const result = await DropCurrencyDialog.show(this.actor, this.recipient, { localization: "WithdrawCurrencies" });
 		return this._addCurrency(result, this.actor, this.recipient);
 	}
@@ -654,6 +708,7 @@ export default class ItemPileStore {
 	}
 
 	takeAll() {
+		if (this.warnIfNeedsGM()) return;
 		game.itempiles.API.transferEverything(
 			this.actor,
 			this.recipient,
@@ -662,6 +717,10 @@ export default class ItemPileStore {
 	}
 
 	splitAll() {
+		// Splitting changes several actors at once, so it always needs a GM
+		if (!get(this.gmConnected)) {
+			return Helpers.custom_warning(game.i18n.localize("ITEM-PILES.Warnings.NeedsGMSplit"), true);
+		}
 		return game.itempiles.API.splitItemPileContents(this.actor, { instigator: this.recipient });
 	}
 

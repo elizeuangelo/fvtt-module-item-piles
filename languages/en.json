@@ -49,6 +49,9 @@
     },
     "Warnings": {
       "NoGMsConnected": "WARNING - No GMs connected - Item Piles requires a GM to be connected for players to be able to utilize most of the module's features.",
+      "NeedsGM": "A GM needs to be online for you to move items or currencies here.",
+      "NeedsGMMerchant": "A GM needs to be online for you to buy or sell here.",
+      "NeedsGMSplit": "A GM needs to be online to split this pile.",
       "NoResponseFromGM": "WARNING - GM \"{user_name}\" did not respond to request - Item Piles requires a GM to be connected and response in order for players to be able to utilize most of the module's features.",
       "NoResponseFromGMTimeout": "WARNING - GM \"{user_name}\" did not respond to last request - please wait {time} seconds before making another Item Piles request.",
       "TransactionNoGMConnected": "No GM is connected - current transaction has been cancelled, nothing has been added, removed, or transferred",

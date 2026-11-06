@@ -10,6 +10,7 @@
 	const isMerchant = store.isMerchant;
 
 	const itemFlagDataStore = item.itemFlagData;
+	const needsGM = store.needsGM;
 
 	const hasRecipient = !!item.store.recipient;
 
@@ -43,11 +44,11 @@
 	{#if hasRecipient}
 		{#if isMerchant}
       <span
-	      class:item-piles-clickable-link={!$itemFlagDataStore.notForSale || store.userHasAuthority}
-	      class:item-piles-clickable-link-disabled={$quantity <= 0 || ($itemFlagDataStore.notForSale && !store.userHasAuthority)}
+	      class:item-piles-clickable-link={(!$itemFlagDataStore.notForSale || store.userHasAuthority) && !$needsGM}
+	      class:item-piles-clickable-link-disabled={$quantity <= 0 || ($itemFlagDataStore.notForSale && !store.userHasAuthority) || $needsGM}
 	      class:buy-button={store.userHasAuthority}
 	      on:click={() => {
-              if($quantity <= 0 || ($itemFlagDataStore.notForSale && !store.userHasAuthority)) return;
+              if($quantity <= 0 || ($itemFlagDataStore.notForSale && !store.userHasAuthority) || $needsGM) return;
               store.tradeItem(item)
             }}>
         <i class="fas fa-shopping-cart"></i>
@@ -56,10 +57,10 @@
 		{:else}
       <span
 	      style="margin-left: 0.25rem;"
-	      class:item-piles-clickable-link={$quantity > 0 && !$itemFlagDataStore.cantBeSoldToMerchants}
-	      class:item-piles-clickable-link-disabled={$quantity <= 0 || $itemFlagDataStore.cantBeSoldToMerchants}
+	      class:item-piles-clickable-link={$quantity > 0 && !$itemFlagDataStore.cantBeSoldToMerchants && !$needsGM}
+	      class:item-piles-clickable-link-disabled={$quantity <= 0 || $itemFlagDataStore.cantBeSoldToMerchants || $needsGM}
 	      on:click={() => {
-              if(($quantity <= 0 || $itemFlagDataStore.cantBeSoldToMerchants)) return;
+              if(($quantity <= 0 || $itemFlagDataStore.cantBeSoldToMerchants || $needsGM)) return;
               store.tradeItem(item, true)
             }}>
         <i class="fas fa-hand-holding-usd"></i> {localize("ITEM-PILES.Merchant.Sell")}

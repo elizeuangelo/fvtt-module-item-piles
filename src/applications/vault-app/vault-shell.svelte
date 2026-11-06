@@ -22,6 +22,7 @@
 	import VaultExpanderEntry from "./VaultExpanderEntry.svelte";
 	import { FloatingElement } from "../components/FloatingElement/FloatingElement.js";
 	import * as PileUtilities from "../../helpers/pile-utilities.js";
+	import GMRequiredNotice from "../components/GMRequiredNotice.svelte";
 
 	const { application } = getContext('#external');
 
@@ -44,12 +45,16 @@
 	const visibleLogItems = store.visibleLogItems;
 	const recipientDocument = store.recipientDocument;
 	const dragPositionStore = store.dragPosition;
+	const needsGM = store.needsGM;
 
 	const activeTab = writable("vault");
 
 	$: tabIsExpander = $activeTab === "expanders";
 	$: pileData = $pileDataStore;
 	$: gridData = $gridDataStore;
+	// Only shown to users who could otherwise do something here, so viewers are not told about a GM for nothing
+	$: showGMRequiredNotice = $needsGM && (gridData.canOrganize || gridData.canDepositItems || gridData.canWithdrawItems
+		|| gridData.canDepositCurrencies || gridData.canWithdrawCurrencies);
 
 	const floatingElementPositionStore = FloatingElement.positionStore;
 	let element;
@@ -120,7 +125,7 @@
 	});
 
 	function doubleClickItem(event) {
-		if (!gridData.canWithdrawItems) return;
+		if (!gridData.canWithdrawItems || $needsGM) return;
 		event.detail.item.item.take();
 	}
 
@@ -129,7 +134,7 @@
 
 			const contextMenu = []
 
-			if (gridData.canWithdrawItems) {
+			if (gridData.canWithdrawItems && !$needsGM) {
 				contextMenu.push({
 					icon: 'fas fa-hand', label: localize('ITEM-PILES.Inspect.Take'), onPress: () => {
 						event.detail.item.item.take();
@@ -140,7 +145,7 @@
 			const quantity = get(event.detail.item.item.quantity);
 			const freeSpacesAfterSplit = gridData.freeSpaces;
 
-			if ((gridData.canDepositItems || game.user.isGM) && event.detail.item.item.canStack && quantity > 1 && freeSpacesAfterSplit) {
+			if ((gridData.canDepositItems || game.user.isGM) && !$needsGM && event.detail.item.item.canStack && quantity > 1 && freeSpacesAfterSplit) {
 				contextMenu.push({
 					icon: 'fas fa-object-ungroup', label: "Split", onPress: () => {
 						beginSplitItem(event)
@@ -356,6 +361,10 @@
 
 		{#if $activeTab === "vault"}
 
+			{#if showGMRequiredNotice}
+				<GMRequiredNotice/>
+			{/if}
+
 			<div class="form-group item-piles-flexrow item-piles-bottom-divider"
 			     style="margin: 0.25rem 0; align-items: center; flex: 0 1 auto;">
 				<label style="flex:0 1 auto; margin-right: 5px;">Search:</label>
@@ -369,6 +378,7 @@
 				      bind:gridContainer={element}
 				      options={{
               ...gridData,
+              canOrganize: gridData.canOrganize && !$needsGM,
               class: "item-piles-grid-background",
               activeClass: "item-piles-grid-item-active",
               previewClass: "item-piles-grid-item-preview",
@@ -412,12 +422,14 @@
 					{#if gridData.canDepositCurrencies || gridData.canWithdrawCurrencies}
 						<div style="flex:0 1 auto; justify-self: flex-end; display: flex; justify-content: flex-end;">
 							{#if gridData.canWithdrawCurrencies}
-								<button type="button" class="item-piles-small-button" on:click={() => store.withdrawCurrency()}>
+								<button type="button" class="item-piles-small-button" on:click={() => store.withdrawCurrency()}
+								        disabled={$needsGM}>
 									{localize("ITEM-PILES.Vault.Withdraw")}
 								</button>
 							{/if}
 							{#if gridData.canDepositCurrencies}
-								<button type="button" class="item-piles-small-button" on:click={() => store.depositCurrency()}>
+								<button type="button" class="item-piles-small-button" on:click={() => store.depositCurrency()}
+								        disabled={$needsGM}>
 									{localize("ITEM-PILES.Vault.Deposit")}
 								</button>
 							{/if}
@@ -431,6 +443,7 @@
 				{#if gridData.canOrganize}
 					<div style="flex: 0 1 auto;">
 						<button type="button" class="item-piles-small-button" on:click={(event) => store.sortItemsOnGrid(event)}
+						        disabled={$needsGM}
 						        data-tooltip={localize("ITEM-PILES.Vault.SortItemsTooltip")}>
 							{localize("ITEM-PILES.Vault.SortItems")}
 						</button>
