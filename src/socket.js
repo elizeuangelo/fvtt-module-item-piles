@@ -2,7 +2,7 @@ import CONSTANTS from "./constants/constants.js";
 import * as Helpers from "./helpers/helpers.js";
 import { debug } from "./helpers/helpers.js";
 import { getActor, stringIsUuid } from "./helpers/utilities.js";
-import { isValidItemPile } from "./helpers/pile-utilities.js";
+import { canUserChangeItemPile, isValidItemPile } from "./helpers/pile-utilities.js";
 import PrivateAPI from "./API/private-api.js";
 import TradeAPI from "./API/trade-api.js";
 import ChatAPI from "./API/chat-api.js";
@@ -191,20 +191,43 @@ export default class ItemPileSocket {
 	}
 
 	/**
-	 * Executes a handler that changes a single target actor. If the current user owns the target and it is not an
-	 * item pile, the handler runs on this client, so no GM needs to be connected. Otherwise, it is sent to a GM.
-	 *
-	 * Item piles (including vaults and merchants) always go to a GM, as their macros and vault logs expect GM permissions.
+	 * Executes a handler that changes a single target actor, on this client if canExecuteLocally allows it, otherwise
+	 * on a GM's client.
 	 */
 	static executeForTarget(handler, targetUuid, ...args) {
-		const targetActor = getActor(targetUuid);
-		const canExecuteLocally = targetActor instanceof Actor
-			&& targetActor.isOwner
-			&& !isValidItemPile(targetActor);
-		if (!canExecuteLocally) {
-			return this.executeAsGM(handler, targetUuid, ...args);
+		return this.executeForActors(handler, [targetUuid], targetUuid, ...args);
+	}
+
+	/**
+	 * Executes a handler that changes the given actors, on this client if canExecuteLocally allows it, so no GM needs
+	 * to be connected, otherwise on a GM's client.
+	 *
+	 * @param {string} handler
+	 * @param {Array<string>} actorUuids    Every actor the handler changes
+	 * @param {...*} args                   The handler's arguments
+	 */
+	static executeForActors(handler, actorUuids, ...args) {
+		if (!this.canExecuteLocally(actorUuids)) {
+			return this.executeAsGM(handler, ...args);
 		}
-		return this.executeLocally(handler, targetUuid, ...args);
+		return this.executeLocally(handler, ...args);
+	}
+
+	/**
+	 * Whether this client can make a handler's changes to the given actors itself, which needs the user to own all of
+	 * them. Item piles (including vaults and merchants) are only changed here while no GM is connected, as a GM keeps
+	 * the changes of several players to the same pile in order, and only when canUserChangeItemPile allows it.
+	 *
+	 * @param {Array<string>} actorUuids
+	 * @returns {boolean}
+	 */
+	static canExecuteLocally(actorUuids) {
+		return actorUuids.every(uuid => {
+			const actor = getActor(uuid);
+			if (!(actor instanceof Actor) || !actor.isOwner) return false;
+			if (!isValidItemPile(actor)) return true;
+			return !Helpers.isGMConnected() && canUserChangeItemPile(uuid);
+		});
 	}
 
 	static async executeLocally(handler, ...args) {

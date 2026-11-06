@@ -460,6 +460,14 @@ export class VaultStore extends ItemPileStore {
 			});
 		}
 
+		// Like updateGrid, an owner can rearrange the vault's own items without a GM
+		if (this.actor.isOwner) {
+			return PrivateAPI._commitDocumentChanges(this.actor.uuid, {
+				itemsToUpdate: itemUpdates,
+				itemsToDelete: deletions
+			});
+		}
+
 		return ItemPileSocket.executeAsGM(ItemPileSocket.HANDLERS.COMMIT_DOCUMENT_CHANGES, this.actor.uuid, {
 			itemsToUpdate: itemUpdates,
 			itemsToDelete: deletions

@@ -1307,7 +1307,7 @@ class API {
 			if (typeof interactionId !== "string") throw Helpers.custom_error(`transferItems | interactionId must be of type string`);
 		}
 
-		return ItemPileSocket.executeAsGM(ItemPileSocket.HANDLERS.TRANSFER_ITEMS, sourceUuid, targetUuid, items, game.user.id, {
+		return ItemPileSocket.executeForActors(ItemPileSocket.HANDLERS.TRANSFER_ITEMS, [sourceUuid, targetUuid], sourceUuid, targetUuid, items, game.user.id, {
 			interactionId, skipVaultLogging
 		});
 
@@ -1357,7 +1357,7 @@ class API {
 			if (!canItemsFit) throw Helpers.custom_error(`transferAllItems | The target vault actor ${targetActor.name} cannot fit these items`, true);
 		}
 
-		return ItemPileSocket.executeAsGM(ItemPileSocket.HANDLERS.TRANSFER_ALL_ITEMS, sourceUuid, targetUuid, game.user.id, {
+		return ItemPileSocket.executeForActors(ItemPileSocket.HANDLERS.TRANSFER_ALL_ITEMS, [sourceUuid, targetUuid], sourceUuid, targetUuid, game.user.id, {
 			itemFilters, skipVaultLogging, interactionId
 		});
 	}
@@ -1527,7 +1527,7 @@ class API {
 			if (typeof interactionId !== "string") throw Helpers.custom_error(`transferAttributes | interactionId must be of type string`);
 		}
 
-		return ItemPileSocket.executeAsGM(ItemPileSocket.HANDLERS.TRANSFER_ATTRIBUTES, sourceUuid, targetUuid, attributes, game.user.id, {
+		return ItemPileSocket.executeForActors(ItemPileSocket.HANDLERS.TRANSFER_ATTRIBUTES, [sourceUuid, targetUuid], sourceUuid, targetUuid, attributes, game.user.id, {
 			skipVaultLogging,
 			interactionId
 		});
@@ -1557,7 +1557,7 @@ class API {
 			if (typeof interactionId !== "string") throw Helpers.custom_error(`transferAllAttributes | interactionId must be of type string`);
 		}
 
-		return ItemPileSocket.executeAsGM(ItemPileSocket.HANDLERS.TRANSFER_ALL_ATTRIBUTES, sourceUuid, targetUuid, game.user.id, {
+		return ItemPileSocket.executeForActors(ItemPileSocket.HANDLERS.TRANSFER_ALL_ATTRIBUTES, [sourceUuid, targetUuid], sourceUuid, targetUuid, game.user.id, {
 			skipVaultLogging,
 			interactionId
 		});
@@ -1608,7 +1608,7 @@ class API {
 			if (typeof interactionId !== "string") throw Helpers.custom_error(`transferEverything | interactionId must be of type string`);
 		}
 
-		return ItemPileSocket.executeAsGM(ItemPileSocket.HANDLERS.TRANSFER_EVERYTHING, sourceUuid, targetUuid, game.user.id, {
+		return ItemPileSocket.executeForActors(ItemPileSocket.HANDLERS.TRANSFER_EVERYTHING, [sourceUuid, targetUuid], sourceUuid, targetUuid, game.user.id, {
 			itemFilters, skipVaultLogging, interactionId
 		});
 
@@ -1997,7 +1997,7 @@ class API {
 			throw Helpers.custom_error(`transferCurrencies | ${sourceActor.name} cannot afford to transfer "${currencies}" without receiving change!`);
 		}
 
-		return ItemPileSocket.executeAsGM(ItemPileSocket.HANDLERS.TRANSFER_CURRENCIES, sourceUuid, targetUuid, currencies, game.user.id, { interactionId });
+		return ItemPileSocket.executeForActors(ItemPileSocket.HANDLERS.TRANSFER_CURRENCIES, [sourceUuid, targetUuid], sourceUuid, targetUuid, currencies, game.user.id, { interactionId });
 
 	}
 
@@ -2019,7 +2019,7 @@ class API {
 		const targetUuid = Utilities.getUuid(target);
 		if (!targetUuid) throw Helpers.custom_error(`transferCurrencies | Could not determine the UUID, please provide a valid target`);
 
-		return ItemPileSocket.executeAsGM(ItemPileSocket.HANDLERS.TRANSFER_ALL_CURRENCIES, sourceUuid, targetUuid, game.user.id, { interactionId });
+		return ItemPileSocket.executeForActors(ItemPileSocket.HANDLERS.TRANSFER_ALL_CURRENCIES, [sourceUuid, targetUuid], sourceUuid, targetUuid, game.user.id, { interactionId });
 
 	}
 

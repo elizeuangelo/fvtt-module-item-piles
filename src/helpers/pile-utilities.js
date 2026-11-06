@@ -216,11 +216,47 @@ export function shouldItemPileBeDeleted(targetUuid) {
 
 	const targetDocument = Utilities.getDocument(target);
 
-	const pileData = getActorFlagData(targetDocument);
+	return isItemPileEmpty(targetDocument) && itemPileDeletesWhenEmpty(targetDocument);
 
-	if (!isItemPileLootable(targetDocument, pileData) || !isItemPileEmpty(targetDocument)) {
-		return false;
+}
+
+/**
+ * Whether a user who owns an item pile can also do what changing its contents leads to without a GM: running the
+ * pile's macro, which is written by the GM and may need GM permissions, so a pile with one never qualifies, and
+ * deleting the pile's token once it has been emptied, which players are not allowed to do by default.
+ *
+ * @param {string} targetUuid
+ * @param {User} [user=game.user]
+ * @returns {boolean}
+ */
+export function canUserChangeItemPile(targetUuid, user = game.user) {
+
+	const target = Utilities.getToken(targetUuid);
+	const targetDocument = Utilities.getDocument(target);
+	if (!targetDocument) return false;
+
+	const pileData = getActorFlagData(targetDocument);
+	if (pileData?.macro) return false;
+
+	// Matches shouldItemPileBeDeleted, which only deletes piles whose token is on the current canvas
+	if (target instanceof (foundry?.canvas?.placeables?.Token ?? Token) && itemPileDeletesWhenEmpty(targetDocument, pileData)) {
+		return targetDocument.canUserModify(user, "delete");
 	}
+
+	return true;
+
+}
+
+/**
+ * Whether an item pile's token is deleted once the pile has been emptied, whatever it contains right now.
+ *
+ * @param {TokenDocument|Actor} targetDocument
+ * @param {object} [pileData]
+ * @returns {boolean}
+ */
+export function itemPileDeletesWhenEmpty(targetDocument, pileData = getActorFlagData(targetDocument)) {
+
+	if (!isItemPileLootable(targetDocument, pileData)) return false;
 
 	if (typeof pileData?.deleteWhenEmpty === "boolean") {
 		return pileData?.deleteWhenEmpty;

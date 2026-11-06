@@ -55,38 +55,38 @@ export default class PrivateAPI {
 	/**
 	 * @private
 	 */
-	static _onCreateItem(doc) {
+	static _onCreateItem(doc, options, userId) {
 		if (!doc.parent) return true;
 		ItemPileStore.notifyChanges("createItem", doc.parent, doc);
 		if (!PileUtilities.isValidItemPile(doc.parent)) return true;
-		this._evaluateItemPileChange(doc.parent, {}, true);
+		this._evaluateItemPileChange(doc.parent, {}, true, userId);
 	}
 
 	/**
 	 * @private
 	 */
-	static _onUpdateItem(doc) {
+	static _onUpdateItem(doc, changes, options, userId) {
 		if (!doc.parent) return true;
 		if (!PileUtilities.isValidItemPile(doc.parent)) return true;
-		this._evaluateItemPileChange(doc.parent, {}, true);
+		this._evaluateItemPileChange(doc.parent, {}, true, userId);
 	}
 
 	/**
 	 * @private
 	 */
-	static _onDeleteItem(doc) {
+	static _onDeleteItem(doc, options, userId) {
 		if (!doc.parent) return true;
 		ItemPileStore.notifyChanges("deleteItem", doc.parent, doc);
 		if (!PileUtilities.isValidItemPile(doc.parent)) return true;
-		this._evaluateItemPileChange(doc.parent, {}, true);
+		this._evaluateItemPileChange(doc.parent, {}, true, userId);
 	}
 
 	/**
 	 * @private
 	 */
-	static _onUpdateActor(doc, changes) {
+	static _onUpdateActor(doc, changes, options, userId) {
 		if (!PileUtilities.isValidItemPile(doc)) return true;
-		this._evaluateItemPileChange(doc, changes);
+		this._evaluateItemPileChange(doc, changes, false, userId);
 	}
 
 	/**
@@ -1761,11 +1761,13 @@ export default class PrivateAPI {
 	 * @returns {*}
 	 * @private
 	 */
-	static async _evaluateItemPileChange(doc, changes = {}, force = false) {
+	static async _evaluateItemPileChange(doc, changes = {}, force = false, userId = false) {
 		const diff = foundry.utils.diffObject(doc, changes);
 		const duplicatedChanges = foundry.utils.deepClone(diff);
 		const target = doc?.token ?? doc;
-		if (!Helpers.isResponsibleGM()) return;
+		// Without a GM, the player who changed a pile they own updates its appearance instead
+		const madeChangeWithoutGM = userId === game.user.id && !Helpers.isGMConnected() && doc.isOwner;
+		if (!Helpers.isResponsibleGM() && !madeChangeWithoutGM) return;
 		if (!force && !PileUtilities.shouldEvaluateChange(target, duplicatedChanges)) return;
 		const targetUuid = target.uuid;
 		return Helpers.debounceManager.setDebounce(targetUuid, async (uuid) => {
@@ -2224,7 +2226,8 @@ export default class PrivateAPI {
 
 		if (!PileUtilities.isValidItemPile(pileDocument)) return;
 
-		if (PileUtilities.isItemPileLootable(pileDocument) && !Helpers.isGMConnected()) {
+		// Without a GM, only piles the player can change themselves can be looted
+		if (PileUtilities.isItemPileLootable(pileDocument) && !Helpers.isGMConnected() && !ItemPileSocket.canExecuteLocally([pileDocument.uuid])) {
 			Helpers.custom_warning(`Item Piles requires a GM to be connected for players to be able to loot item piles.`, true)
 			return;
 		}
