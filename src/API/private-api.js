@@ -39,6 +39,7 @@ export default class PrivateAPI {
 		Helpers.hooks.on("updateToken", this._onUpdateToken.bind(this));
 		Helpers.hooks.on("createToken", this._onCreateToken.bind(this))
 		Helpers.hooks.on("dropCanvasData", this._dropData.bind(this));
+		this._deletePendingItemPiles();
 	}
 
 	/**
@@ -177,7 +178,11 @@ export default class PrivateAPI {
 		changes[CONSTANTS.FLAGS.PILE] = PileUtilities.cleanFlagData(flagData);
 	}
 
-	static _onUpdateToken(doc) {
+	static _onUpdateToken(doc, changes) {
+		// A player emptied this pile but could not delete it, so the responsible GM does it as soon as they see it
+		if (foundry.utils.getProperty(changes, CONSTANTS.FLAGS.PENDING_DELETION) && Helpers.isResponsibleGM()) {
+			this._deletePendingItemPile(doc);
+		}
 		if (doc.actorLink) return true;
 		if (!PileUtilities.isValidItemPile(doc)) return true;
 		ItemPileStore.notifyChanges("updateUnlinkedToken", doc.actor)
@@ -1742,12 +1747,63 @@ export default class PrivateAPI {
 		}
 	}
 
+	/**
+	 * Deletes an item pile's token. Players are not allowed to delete tokens by default, so when the current user
+	 * cannot, the token is marked instead and the next GM deletes it (see _deletePendingItemPile). Either way, the
+	 * change that emptied the pile has already been made, so this never throws for lack of permission.
+	 *
+	 * @param {string} targetUuid
+	 * @returns {Promise<TokenDocument|boolean>}
+	 */
 	static async _deleteItemPile(targetUuid) {
 		const target = Utilities.getToken(targetUuid);
-		if (!target) return false;
+		const tokenDocument = Utilities.getDocument(target);
+		if (!(tokenDocument instanceof TokenDocument)) return false;
+		if (!tokenDocument.canUserModify(game.user, "delete")) {
+			try {
+				await tokenDocument.update({ [CONSTANTS.FLAGS.PENDING_DELETION]: true });
+			} catch (err) {
+				Helpers.custom_warning(`Could not mark the emptied item pile "${tokenDocument.name}" to be deleted by a GM`);
+				console.error(err);
+			}
+			return false;
+		}
 		const hookResult = Helpers.hooks.call(CONSTANTS.HOOKS.PILE.PRE_DELETE, target);
 		if (hookResult === false) return false;
-		return target.document.delete();
+		return tokenDocument.delete();
+	}
+
+	/**
+	 * Deletes an item pile token that a user who could not delete it marked after emptying it, if it is still empty and
+	 * still set to be deleted once emptied. Otherwise, the mark is removed and the pile is kept. Empty piles that nobody
+	 * marked, like ones a GM placed to be filled later, are never touched.
+	 *
+	 * @param {TokenDocument} tokenDocument
+	 * @returns {Promise<TokenDocument|boolean>}
+	 */
+	static async _deletePendingItemPile(tokenDocument) {
+		if (!foundry.utils.getProperty(tokenDocument, CONSTANTS.FLAGS.PENDING_DELETION)) return false;
+		const shouldBeDeleted = PileUtilities.isValidItemPile(tokenDocument)
+			&& PileUtilities.isItemPileEmpty(tokenDocument)
+			&& PileUtilities.itemPileDeletesWhenEmpty(tokenDocument);
+		if (shouldBeDeleted) {
+			const hookResult = Helpers.hooks.call(CONSTANTS.HOOKS.PILE.PRE_DELETE, tokenDocument.object ?? tokenDocument);
+			if (hookResult !== false) return tokenDocument.delete();
+		}
+		await tokenDocument.update({ [CONSTANTS.FLAGS.NO_PENDING_DELETION]: null });
+		return false;
+	}
+
+	/**
+	 * Deletes the item piles that were marked while no GM could delete them, on every scene.
+	 */
+	static async _deletePendingItemPiles() {
+		if (!Helpers.isResponsibleGM()) return;
+		const markedTokens = game.scenes.contents.flatMap(scene => scene.tokens.contents)
+			.filter(tokenDocument => foundry.utils.getProperty(tokenDocument, CONSTANTS.FLAGS.PENDING_DELETION));
+		for (const tokenDocument of markedTokens) {
+			await this._deletePendingItemPile(tokenDocument);
+		}
 	}
 
 	/* -------- PRIVATE ITEM PILE METHODS -------- */
@@ -1771,10 +1827,16 @@ export default class PrivateAPI {
 		if (!force && !PileUtilities.shouldEvaluateChange(target, duplicatedChanges)) return;
 		const targetUuid = target.uuid;
 		return Helpers.debounceManager.setDebounce(targetUuid, async (uuid) => {
-			if (!Utilities.getDocument(uuid)) return;
-			const deleted = PileUtilities.shouldItemPileBeDeleted(uuid);
+			const document = Utilities.getDocument(uuid);
+			if (!document) return;
+			// A pile this user cannot delete stays until a GM deletes it, so it still shows that it is empty
+			const deleted = PileUtilities.shouldItemPileBeDeleted(uuid) && document.canUserModify(game.user, "delete");
 			if (deleted) return;
 			await Helpers.hooks.runWithout(async () => {
+				// A pile marked to be deleted by a GM that has been filled again is kept
+				if (foundry.utils.getProperty(document, CONSTANTS.FLAGS.PENDING_DELETION) && !PileUtilities.isItemPileEmpty(document)) {
+					await document.update({ [CONSTANTS.FLAGS.NO_PENDING_DELETION]: null });
+				}
 				await PileUtilities.updateItemPileData(uuid);
 			});
 		})(targetUuid);

@@ -221,29 +221,23 @@ export function shouldItemPileBeDeleted(targetUuid) {
 }
 
 /**
- * Whether a user who owns an item pile can also do what changing its contents leads to without a GM: running the
- * pile's macro, which is written by the GM and may need GM permissions, so a pile with one never qualifies, and
- * deleting the pile's token once it has been emptied, which players are not allowed to do by default.
+ * Whether a user who owns an item pile can also do what changing its contents leads to without a GM. A pile with a
+ * macro never qualifies, as the GM writes the macro, it may need GM permissions, and skipping it would change what
+ * happens in the game.
+ *
+ * Deleting an emptied pile does not need a GM: a user who may not delete its token marks it instead, and the next GM
+ * deletes it (see PrivateAPI._deleteItemPile).
  *
  * @param {string} targetUuid
- * @param {User} [user=game.user]
  * @returns {boolean}
  */
-export function canUserChangeItemPile(targetUuid, user = game.user) {
+export function canUserChangeItemPile(targetUuid) {
 
-	const target = Utilities.getToken(targetUuid);
-	const targetDocument = Utilities.getDocument(target);
+	const targetDocument = Utilities.getDocument(Utilities.getToken(targetUuid));
 	if (!targetDocument) return false;
 
 	const pileData = getActorFlagData(targetDocument);
-	if (pileData?.macro) return false;
-
-	// Matches shouldItemPileBeDeleted, which only deletes piles whose token is on the current canvas
-	if (target instanceof (foundry?.canvas?.placeables?.Token ?? Token) && itemPileDeletesWhenEmpty(targetDocument, pileData)) {
-		return targetDocument.canUserModify(user, "delete");
-	}
-
-	return true;
+	return !pileData?.macro;
 
 }
 

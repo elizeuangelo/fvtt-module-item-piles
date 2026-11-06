@@ -23,7 +23,9 @@ const CONSTANTS = {
 		PUBLIC_TRADE_ID: `${baseFlag}.publicTradeId`,
 		TRADE_USERS: `${baseFlag}.tradeUsers`,
 		TEMPORARY_ITEM: `${baseFlag}.temporary_item`,
-		CUSTOM_CATEGORY: `${baseFlag}.item.customCategory`
+		CUSTOM_CATEGORY: `${baseFlag}.item.customCategory`,
+		PENDING_DELETION: `${baseFlag}.pendingDeletion`,
+		NO_PENDING_DELETION: `${baseFlag}.-=pendingDeletion`
 	},
 
 	SIMPLE_FLAGS: {
