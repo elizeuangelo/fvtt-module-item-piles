@@ -128,7 +128,8 @@
 			{/if}
 
 			<footer class="sheet-footer item-piles-flexrow item-piles-top-divider">
-				{#if editQuantities && !$deleted}
+				<!-- Only while editing the pile itself (no actor taking from it), which writes to the pile directly -->
+				{#if $editQuantities && store.actor.isOwner && !$deleted}
 					<button type="button" on:click={() => { store.update() }}>
 						<i class="fas fa-save"></i> {localize("ITEM-PILES.Applications.ItemPileConfig.Update")}
 					</button>

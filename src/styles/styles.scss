@@ -301,8 +301,8 @@
       cursor: pointer;
 
       &-disabled {
-        cursor: not-allowed;
-        opacity: 0.65;
+        cursor: default;
+        opacity: 0.5;
       }
     }
 
@@ -677,6 +677,11 @@
     margin: 3px;
     line-height: inherit;
     border-radius: 4px;
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.5;
+    }
   }
 
 }

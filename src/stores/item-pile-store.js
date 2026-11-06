@@ -666,6 +666,8 @@ export default class ItemPileStore {
 	}
 
 	async addCurrency(recipient = false) {
+		// Giving currency from an actor to the pile is a transfer, which may need a GM
+		if (recipient && this.warnIfNeedsGM()) return;
 		const source = recipient || this.actor;
 		const target = recipient ? this.actor : false;
 		const result = await DropCurrencyDialog.show(source, target, {
